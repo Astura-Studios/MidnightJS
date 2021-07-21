@@ -1,1 +1,11 @@
 node_modules
+package.json
+package-lock.json
+.prettierrc.json
+README.md
+.gitignore
+.eslintrc.json
+types/tsconfig.json
+types/tslint.kson
+.husky
+docs

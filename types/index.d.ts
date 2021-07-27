@@ -15,6 +15,7 @@ declare module "midnight.js" {
     } from "eris";
     import { Collection } from "@discordjs/collection";
     import { EventEmitter } from "events";
+    import Database from "repl";
 
     // Package Information
     export const author: string;
@@ -56,10 +57,17 @@ declare module "midnight.js" {
         export interface ArgumentOptions {
             description: string;
             name: string;
-            prompt: {}; // Create interface for this
+            prompt: ArgumentPrompt;
             required: boolean;
-            type: string; // Create type for this
-            value: string;
+            type: Types.ArgumentType;
+        }
+
+        export interface ArgumentPrompt {
+            cancel?: string;
+            start: (...args: any[]) => string;
+            retry: (...args: any[]) => string;
+            required?: boolean;
+            timeout?: number;
         }
 
         export interface CommandOptions {
@@ -92,6 +100,11 @@ declare module "midnight.js" {
             prefix?:
                 | string
                 | ((message: Structures.Message) => Promise<string>);
+        }
+
+        export interface EventOptions {
+            event: string | symbol;
+            listener: (...args: any[]) => void;
         }
     }
 
@@ -126,13 +139,22 @@ declare module "midnight.js" {
             public prefix?:
                 | string
                 | ((message: Structures.Message) => Promise<string>);
+
+            public exec(
+                args: object,
+                message: Structures.Message
+            ): any | Promise<any>;
+        }
+
+        class Listener {
+            public constructor(bot: Bot, options: Options.EventOptions);
         }
 
         class Message extends ErisMessage {
             public bot: Bot;
 
-            public lineReply(content, options): Promise<any>;
-            public lineReplyNoMention(content, options): Promise<any>;
+            public lineReply(content: any, options: any): Promise<any>;
+            public lineReplyNoMention(content: any, options: any): Promise<any>;
         }
     }
 
@@ -149,6 +171,16 @@ declare module "midnight.js" {
         export type BotStatus = "online" | "idle" | "dnd" | "offline";
 
         // Command Related
+        export type ArgumentType =
+            | "textChannel"
+            | "newsChannel"
+            | "anyChannel"
+            | "storeChannel"
+            | "inviteChannel"
+            | "categoryChannel"
+            | "role"
+            | "guildMember"
+            | "permission";
         export type CommandChannel = "guild" | "dm" | "all";
 
         // Module Related
@@ -160,9 +192,23 @@ declare module "midnight.js" {
         public constructor(options?: Options.BotOptions);
         private client: Client;
         public commands: Collection<string, Structures.Command>;
+        public database: Database.REPLCommand;
+        public music: any;
+        public util: any;
+
+        public description: string;
+        public owners: string[];
+        public platform: Types.BotPlatform;
 
         public addCommand(options?: Options.CommandOptions): void;
-        public init(): void;
+        public addEvent(options: Options.EventOptions): void;
+        public addLavalinkServer(
+            url: string,
+            password: string,
+            debug?: boolean
+        );
+        private init(): void;
+        public onMessage(): any;
         public setStatus(options: Options.BotStatusOptions): void;
         public start(): Promise<void>;
     }
